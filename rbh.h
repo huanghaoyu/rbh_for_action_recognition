@@ -31,11 +31,12 @@ struct Rbh
         {
             for(int blk_i = 0; blk_i < frame.RawImage.cols/dctGridStep; ++blk_i)
             {
-                float sum = 0;
+            	float max = -1000.0;
                 for(int j = 1; j < dctGridStep; ++j)
                     for(int i = 1; i < dctGridStep; ++i)
-                        sum += abs(frame.dctMap.at<float>(blk_j*dctGridStep+j, blk_i*dctGridStep+i));
-                spatialVarianceMap.at<float>(blk_j, blk_i) = sum/(dctGridStep*dctGridStep);
+                    	if(frame.dctMap.at<float>(blk_j*dctGridStep+j, blk_i*dctGridStep+i) > max)
+                    		max = frame.dctMap.at<float>(blk_j*dctGridStep+j, blk_i*dctGridStep+i);
+                spatialVarianceMap.at<float>(blk_j, blk_i) = max;
             }
         }
 
@@ -53,10 +54,11 @@ struct Rbh
         {
             for(int blk_i = 0; blk_i < frame.RawImage.cols/dctGridStep; ++blk_i)
             {
-                float sum = 0;
+            	float max = -1000.0;
                 for(int j = 1; j < dctGridStep; ++j)
-                    sum += abs(frame.dctMap.at<float>(blk_j*dctGridStep+j, blk_i*dctGridStep+0));
-                verticalVarianceMap.at<float>(blk_j, blk_i) = sum/(dctGridStep-1);
+                	if(frame.dctMap.at<float>(blk_j*dctGridStep+j, blk_i*dctGridStep+0) > max)
+                		max = frame.dctMap.at<float>(blk_j*dctGridStep+j, blk_i*dctGridStep+0);
+                verticalVarianceMap.at<float>(blk_j, blk_i) = max;
             }
         }
 
@@ -65,10 +67,11 @@ struct Rbh
         {
             for(int blk_i = 0; blk_i < frame.RawImage.cols/dctGridStep; ++blk_i)
             {
-                float sum = 0;
+            	float max = -1000.0;
                 for(int i = 1; i < dctGridStep; ++i)
-                    sum += abs(frame.dctMap.at<float>(blk_j*dctGridStep+0, blk_i*dctGridStep+i));
-                horizontalVarianceMap.at<float>(blk_j, blk_i) = sum/(dctGridStep-1);
+                	if(frame.dctMap.at<float>(blk_j*dctGridStep+0, blk_i*dctGridStep+i) > max)
+                		max = frame.dctMap.at<float>(blk_j*dctGridStep+0, blk_i*dctGridStep+i);
+                horizontalVarianceMap.at<float>(blk_j, blk_i) = max;
             }
         }
 

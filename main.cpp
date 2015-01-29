@@ -83,9 +83,12 @@ int main(int argc, char* argv[])
 
     Rbh rbh;
 
+//    int frameCount = 0;
 	TIMERS.Everything.Start();
 	while(true)
 	{
+//		if(frameCount > 300)
+//			break;
 //        if(frameIndex > frameNum)
 //            break;
         Frame frame = rdr.Read();
@@ -94,6 +97,7 @@ int main(int argc, char* argv[])
 			break;
 //        frame.RawImage = cap.clone();
 //        ++frameIndex;
+//        ++frameCount;
 
 		log("#read frame pts=%d, mvs=%s, type=%c", frame.PTS, frame.NoMotionVectors ? "no" : "yes", frame.PictType);
 
