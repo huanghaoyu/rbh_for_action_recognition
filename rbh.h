@@ -16,6 +16,26 @@ struct Rbh
     Mat verticalVarianceMap;
     Mat horizontalVarianceMap;
 
+    static const int increStep = 1;
+    Mat weight_table_7x7;
+
+    Rbh()
+    {
+    	weight_table_7x7 = Mat::zeros(7, 7, CV_32FC1);
+    	for(int j = 0; j < 7; ++j)
+    	{
+    		for(int i = 0; i < 7; ++i)
+    		{
+    			if(i == 0)
+    			{
+    				weight_table_7x7.at<float>(j, i) = j + 1;
+    				continue;
+    			}
+    			weight_table_7x7.at<float>(j, i) = j+1 + i*increStep;
+    		}
+    	}
+    }
+
     void Update(Frame& frame)
     {
         if(frame.dctMap.empty())
@@ -34,7 +54,9 @@ struct Rbh
                 float sum = 0;
                 for(int j = 1; j < dctGridStep; ++j)
                     for(int i = 1; i < dctGridStep; ++i)
-                        sum += abs(frame.dctMap.at<float>(blk_j*dctGridStep+j, blk_i*dctGridStep+i));
+//                        sum += abs(frame.dctMap.at<float>(blk_j*dctGridStep+j, blk_i*dctGridStep+i));
+                    	sum += abs(frame.dctMap.at<float>(blk_j*dctGridStep+j, blk_i*dctGridStep+i))
+                    			* weight_table_7x7.at<float>(j-1, i-1);
                 spatialVarianceMap.at<float>(blk_j, blk_i) = sum/(dctGridStep*dctGridStep);
             }
         }
