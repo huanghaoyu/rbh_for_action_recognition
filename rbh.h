@@ -16,7 +16,7 @@ struct Rbh
     Mat verticalVarianceMap;
     Mat horizontalVarianceMap;
 
-    static const int increStep = 1;
+    static const int increStep = 5;
     Mat weight_table_7x7;
 
     Rbh()
