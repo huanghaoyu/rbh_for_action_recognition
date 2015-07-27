@@ -24,6 +24,7 @@ struct Frame
     Mat verticalVarianceMap;
     Mat horizontalVarianceMap;
 	Mat_<bool> Missing;
+	Mat motionTextureMap;	//////
 	Mat RawImage;
 	int FrameIndex;
 	int64_t PTS;

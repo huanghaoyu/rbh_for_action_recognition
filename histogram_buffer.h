@@ -66,6 +66,7 @@ struct HofMbhBuffer
 	int tStride;
 	int ntCells;
 	double fScale;
+	double t;
 
 	HistogramBuffer hog;
 	HistogramBuffer hof;
@@ -157,6 +158,7 @@ struct HofMbhBuffer
 		double fScale, 
 		bool print = false)
 		: 
+		t(1.0),
 		frameSizeAfterInterpolation(frameSizeAfterInterpolation), 
 		ntCells(ntCells),
 		tStride(tStride),
@@ -336,7 +338,7 @@ struct HofMbhBuffer
 //		printf("\n#x\ty\tpts\tStartPTS\tEndPTS\tXoffset\tYoffset\tPatchWidth\tPatchHeight\tdescr\n");
 	}
 
-	void PrintPatchDescriptorHeader(Rect rect)
+	void PrintPatchDescriptorHeader(Rect rect, int frameCount)
 	{
 //		int firstFrame = effectiveFrameIndices[effectiveFrameIndices.size()-ntCells*tStride];
 //		int lastFrame = effectiveFrameIndices.back();
@@ -351,9 +353,15 @@ struct HofMbhBuffer
 //			int(rect.y / fScale),
 //			int(rect.width / fScale),
 //			int(rect.height / fScale));
+
+		Point patchCenter(rect.x + rect.width/2, rect.y + rect.height/2);
+		printf("%.2lf\t%.2lf\t%.2lf\t",
+		double(patchCenter.x) / frameSizeAfterInterpolation.width,
+		double(patchCenter.y) / frameSizeAfterInterpolation.height,
+		t / (frameCount/5));
 	}
 
-	void PrintPatchDescriptor(Rect rect)
+	void PrintPatchDescriptor(Rect rect, int frameCount)
 	{
 		TIMERS.DescriptorQuerying.Start();
 		if(hofInfo.enabled)
@@ -404,7 +412,7 @@ struct HofMbhBuffer
 		if(print)
 		{
 			TIMERS.Writing.Start();
-			PrintPatchDescriptorHeader(rect);
+			PrintPatchDescriptorHeader(rect, frameCount);
 			PrintFloatArray(patchDescriptor);
 			
 			printf("\n");
@@ -413,14 +421,14 @@ struct HofMbhBuffer
 		}
 	}
 
-	void PrintFullDescriptor(int blockWidth, int blockHeight, int xStride, int yStride)
+	void PrintFullDescriptor(int blockWidth, int blockHeight, int xStride, int yStride, int frameCount)
 	{
 		for(int xOffset = 0; xOffset + blockWidth < frameSizeAfterInterpolation.width; xOffset += xStride)
 		{
 			for(int yOffset = 0; yOffset + blockHeight < frameSizeAfterInterpolation.height; yOffset += yStride)
 			{
 				Rect rect(xOffset, yOffset, blockWidth, blockHeight);
-				PrintPatchDescriptor(rect);
+				PrintPatchDescriptor(rect, frameCount);
 			}
 		}
 	}

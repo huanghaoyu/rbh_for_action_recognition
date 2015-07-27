@@ -314,6 +314,11 @@ struct FrameReader
 		mv.SegmCode = segmCode;
 	}
 
+	void PutMotionTextureInMatrix(float val, int mb_x, int mb_y, Frame& f)
+	{
+		f.motionTextureMap.at<float>(mb_y, mb_x) = val;
+	}
+
 	void ReadMotionVectors(Frame& f)
 	{
 		AVCodecContext* pCodecCtx = video_st->codec;
@@ -381,6 +386,7 @@ struct FrameReader
 								InitMotionVector(mv, sx, sy, mb_x, mb_y, dx, dy, pFrame->mb_type[mb_index]);
 								PutMotionVectorInMatrix(mv, f);
 							}
+							PutMotionTextureInMatrix(16.0, mb_x, mb_y, f);
 						}
 						else if (IS_16X8(pFrame->mb_type[mb_index]))
 						{
@@ -401,6 +407,7 @@ struct FrameReader
 								InitMotionVector(mv, sx, sy, mb_x, mb_y, dx, dy, pFrame->mb_type[mb_index]);
 								PutMotionVectorInMatrix(mv, f);
 							}
+							PutMotionTextureInMatrix(8.0, mb_x, mb_y, f);
 						}
 						else if (IS_8X16(pFrame->mb_type[mb_index]))
 						{
@@ -420,6 +427,7 @@ struct FrameReader
 								InitMotionVector(mv, sx, sy, mb_x, mb_y, dx, dy, pFrame->mb_type[mb_index]);
 								PutMotionVectorInMatrix(mv, f);
 							}
+							PutMotionTextureInMatrix(8.0, mb_x, mb_y, f);
 						}
 						else
 						{
@@ -433,6 +441,7 @@ struct FrameReader
 							}
 							InitMotionVector(mv, sx, sy, mb_x, mb_y, dx, dy, pFrame->mb_type[mb_index]);
 							PutMotionVectorInMatrix(mv, f);
+							PutMotionTextureInMatrix(4.0, mb_x, mb_y, f);
 						}
 					}
 				}
@@ -497,6 +506,7 @@ struct FrameReader
 		TIMERS.ReadingAndDecoding.Start();
 		Frame res(frameIndex, Mat_<float>::zeros(DownsampledFrameSize), Mat_<float>::zeros(DownsampledFrameSize), Mat_<bool>::zeros(DownsampledFrameSize));
 		res.RawImage = Mat(OriginalFrameSize, CV_8UC3);
+		res.motionTextureMap = Mat::zeros(DownsampledFrameSize, CV_32FC1);
 
 		bool read = GetNextFrame();
 		if(read)

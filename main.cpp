@@ -120,8 +120,9 @@ int main(int argc, char* argv[])
                     int blockHeight = patchSizes[k].height / cellSize;
                     int xStride = opts.Dense ? 1 : blockWidth / 2;
                     int yStride = opts.Dense ? 1 : blockHeight / 2;
-                    buffer.PrintFullDescriptor(blockWidth, blockHeight, xStride, yStride);
+                    buffer.PrintFullDescriptor(blockWidth, blockHeight, xStride, yStride, rdr.FrameCount);
                 }
+                buffer.t++;
             }
 		}
 	}
