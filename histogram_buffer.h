@@ -19,10 +19,12 @@ struct HistogramBuffer
 	vector<Mat> gluedIntegralTransforms;
 	DescInfo descInfo;
 	int tStride;
+	int count;
 
 	HistogramBuffer(DescInfo descInfo, int tStride) : 
 		descInfo(descInfo),
-		tStride(tStride)
+		tStride(tStride),
+		count(0)
 	{
 		gluedIntegralTransforms.resize(descInfo.ntCells);
 	}
@@ -67,6 +69,7 @@ struct HofMbhBuffer
 	int ntCells;
 	double fScale;
 	double t;
+	static const int timeSkip = 3;	// parameter for multi-skip
 
 	HistogramBuffer hog;
 	HistogramBuffer hof;
@@ -224,7 +227,16 @@ struct HofMbhBuffer
             Mat dx, dy;
             Sobel(frame.RawImage, dx, CV_32F, 1, 0, 1);
             Sobel(frame.RawImage, dy, CV_32F, 0, 1, 1);
-			hog.Update(dx, dy);
+            if(hog.count == 0)
+            {
+            	hog.Update(dx, dy);
+            }
+            hog.count++;
+            if(hog.count > timeSkip)
+            {
+            	hog.count = 0;
+            }
+
 			TIMERS.HogComputation.Stop();
 		}
 
@@ -354,6 +366,8 @@ struct HofMbhBuffer
 //			int(rect.width / fScale),
 //			int(rect.height / fScale));
 
+
+		// Print the location of patch
 		Point patchCenter(rect.x + rect.width/2, rect.y + rect.height/2);
 		printf("%.2lf\t%.2lf\t%.2lf\t",
 		double(patchCenter.x) / frameSizeAfterInterpolation.width,
