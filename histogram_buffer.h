@@ -20,6 +20,7 @@ struct HistogramBuffer
 	DescInfo descInfo;
 	int tStride;
 	int count;
+	Mat_<float> equDx, equDy;
 
 	HistogramBuffer(DescInfo descInfo, int tStride) : 
 		descInfo(descInfo),
@@ -69,7 +70,7 @@ struct HofMbhBuffer
 	int ntCells;
 	double fScale;
 	double t;
-	static const int timeSkip = 3;	// parameter for multi-skip
+	static const int timeSkip = 0;	// parameter for multi-skip
 
 	HistogramBuffer hog;
 	HistogramBuffer hof;
@@ -204,20 +205,49 @@ struct HofMbhBuffer
 		if(hofInfo.enabled)
 		{
 			TIMERS.HofComputation.Start();
-			hof.Update(frame.Dx, frame.Dy);
+			if(hof.count == 0)
+			{
+				hof.equDx = frame.Dx.clone();
+				hof.equDy = frame.Dy.clone();
+			}
+			else
+			{
+				hof.equDx += frame.Dx;
+				hof.equDy += frame.Dy;
+			}
+			hof.count++;
+			if(hof.count > timeSkip)
+			{
+				hof.Update(hof.equDx, hof.equDy);
+				hof.count = 0;
+			}
 			TIMERS.HofComputation.Stop();
 		}
 
 		if(mbhInfo.enabled)
 		{
 			TIMERS.MbhComputation.Start();
-			Mat flowXdX, flowXdY, flowYdX, flowYdY;
-			Sobel(frame.Dx, flowXdX, CV_32F, 1, 0, 1);
-			Sobel(frame.Dx, flowXdY, CV_32F, 0, 1, 1);
-			Sobel(frame.Dy, flowYdX, CV_32F, 1, 0, 1);
-			Sobel(frame.Dy, flowYdY, CV_32F, 0, 1, 1);
-			mbhX.Update(flowXdX, flowXdY);
-			mbhY.Update(flowYdX, flowYdY);
+			if(mbhX.count == 0)
+			{
+				mbhX.equDx = frame.Dx.clone();
+				mbhX.equDy = frame.Dy.clone();
+			}
+			else
+			{
+				mbhX.equDx += frame.Dx;
+				mbhX.equDy += frame.Dy;
+			}
+			mbhX.count++;
+			if(mbhX.count > timeSkip)
+			{
+				Mat flowXdX, flowXdY, flowYdX, flowYdY;
+				Sobel(mbhX.equDx, flowXdX, CV_32F, 1, 0, 1);
+				Sobel(mbhX.equDx, flowXdY, CV_32F, 0, 1, 1);
+				Sobel(mbhX.equDy, flowYdX, CV_32F, 1, 0, 1);
+				Sobel(mbhX.equDy, flowYdY, CV_32F, 0, 1, 1);
+				mbhX.Update(flowXdX, flowXdY);
+				mbhY.Update(flowYdX, flowYdY);
+			}
 			TIMERS.MbhComputation.Stop();
 		}
 
@@ -236,7 +266,6 @@ struct HofMbhBuffer
             {
             	hog.count = 0;
             }
-
 			TIMERS.HogComputation.Stop();
 		}
 
@@ -246,7 +275,15 @@ struct HofMbhBuffer
             Mat dx, dy;
             Sobel(frame.spatialVarianceMap, dx, CV_32F, 1, 0, 1);
             Sobel(frame.spatialVarianceMap, dy, CV_32F, 0, 1, 1);
-            spatialVariance.Update(dx, dy);
+            if(spatialVariance.count == 0)
+            {
+            	spatialVariance.Update(dx, dy);
+            }
+            spatialVariance.count++;
+            if(spatialVariance.count > timeSkip)
+            {
+            	spatialVariance.count = 0;
+            }
             TIMERS.SpatialVarianceComputation.Stop();
         }
 
@@ -256,7 +293,15 @@ struct HofMbhBuffer
             Mat dx, dy;
             Sobel(frame.dcMap, dx, CV_32F, 1, 0, 1);
             Sobel(frame.dcMap, dy, CV_32F, 0, 1, 1);
-            dc.Update(dx, dy);
+            if(dc.count == 0)
+			{
+            	dc.Update(dx, dy);
+			}
+            dc.count++;
+			if(dc.count > timeSkip)
+			{
+				dc.count = 0;
+			}
             TIMERS.DcComputation.Stop();
         }
 
@@ -266,7 +311,15 @@ struct HofMbhBuffer
             Mat dx, dy;
             Sobel(frame.verticalVarianceMap, dx, CV_32F, 1, 0, 1);
             Sobel(frame.verticalVarianceMap, dy, CV_32F, 0, 1, 1);
-            verticalVariance.Update(dx, dy);
+            if(verticalVariance.count == 0)
+			{
+            	verticalVariance.Update(dx, dy);
+			}
+            verticalVariance.count++;
+			if(verticalVariance.count > timeSkip)
+			{
+				verticalVariance.count = 0;
+			}
             TIMERS.VerticalVarianceComputation.Stop();
         }
 
@@ -276,7 +329,15 @@ struct HofMbhBuffer
             Mat dx, dy;
             Sobel(frame.horizontalVarianceMap, dx, CV_32F, 1, 0, 1);
             Sobel(frame.horizontalVarianceMap, dy, CV_32F, 0, 1, 1);
-            horizontalVariance.Update(dx, dy);
+            if(horizontalVariance.count == 0)
+			{
+            	horizontalVariance.Update(dx, dy);
+			}
+            horizontalVariance.count++;
+			if(horizontalVariance.count > timeSkip)
+			{
+				horizontalVariance.count = 0;
+			}
             TIMERS.HorizontalVarianceComputation.Stop();
         }
 
